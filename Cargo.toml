@@ -1,0 +1,40 @@
+[package]
+name = "ROBAS"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.34.3"
+egui = "0.34.3"
+egui_extras = "0.34.3"
+
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"
+ar = "x86_64-w64-mingw32-ar"
+
+# [package]
+# name = "ROBAS"
+# version = "0.1.0"
+# edition = "2021"
+# autobins = false
+
+# [lib]
+# crate-type = ["cdylib"]
+# path = "src/main.rs"
+
+# [dependencies]
+# android-activity = { version = "0.6", features = ["game-activity"] }
+
+# eframe = { version = "0.34", default-features = false, features = [
+#     "default_fonts",
+#     "glow",
+#     "android-game-activity"
+# ] }
+
+# [package.metadata.android]
+# package = "com.robas.app"
+# label = "ROBAS App"
+# min_sdk_version = 14
+# target_sdk_version = 30
+
+# [package.metadata.android.game_activity]
