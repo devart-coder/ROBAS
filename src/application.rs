@@ -1,12 +1,17 @@
 use std::fmt::format;
 
+use calamine::{Reader, SheetVisible, Xls, open_workbook, open_workbook_auto};
 use egui::{Response, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
-use crate::agregator::{Agregator, Status};
+use crate::{
+    agregator::{Agregator, Status},
+    document::Document,
+};
 
 #[derive(Default)]
 pub struct Application {
+    workbook: Document,
     agregators: Vec<Agregator>,
     search_by: RichText,
 }
@@ -57,9 +62,42 @@ impl Application {
                 });
             });
     }
+
+    fn create_menu(&mut self, ui: &mut Ui) {
+        ui.menu_button("Файл", |ui| {
+            if ui.button("📂Открыть").clicked() {
+                let file_dialog = rfd::FileDialog::new()
+                    .add_filter("Exel files", &["xlsx", "xlsm", "xls", "xlsb"]);
+                if let Some(file_path) = file_dialog.pick_file() {
+                    if let Some(path_str) = file_path.to_str() {
+                        #[cfg(debug_assertions)]
+                        {
+                            println!("Path_str: {}", path_str);
+                        }
+                        self.workbook = Document::open(path_str);
+                        // let excel = open_workbook_auto(file_path).unwrap();
+                        // #[cfg(debug_assertions)]
+                        // {
+                        // println!("Document was opened.",);
+                        // println!("Sheets range: {:?}", excel.sheet_names());
+                        // }
+                        #[cfg(debug_assertions)]
+                        {
+                            println!(
+                                "Visible sheets range: {:?}",
+                                self.workbook.sheets(SheetVisible::Visible)
+                            );
+                        }
+                    }
+                }
+                // open_workbook("")
+            };
+        });
+    }
 }
 impl eframe::App for Application {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
+        self.create_menu(ui);
         self.create_top(ui);
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
@@ -74,7 +112,7 @@ impl eframe::App for Application {
                             Status::None => {
                                 ui.push_id(index, |ui| {
                                     ui.label(format!("Агрегатор {}", index));
-                                    item.ui(ui);
+                                    item.draw(ui);
                                 });
                             }
                         }
