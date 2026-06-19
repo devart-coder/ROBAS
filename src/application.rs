@@ -1,8 +1,13 @@
-use egui::{RichText, Ui};
+use std::fmt::format;
+
+use egui::{Response, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
+
+use crate::agregator::{Agregator, Status};
 
 #[derive(Default)]
 pub struct Application {
+    agregators: Vec<Agregator>,
     search_by: RichText,
 }
 impl Application {
@@ -22,7 +27,10 @@ impl Application {
                         );
                     });
                 let _ = ui.heading("Агрегатор");
-                let appeted_button = ui.button(egui::RichText::new("Добавить").heading());
+                if ui.button("Добавить").clicked() {
+                    let ag = Agregator::default();
+                    self.agregators.push(ag);
+                }
             });
         });
     }
@@ -53,6 +61,30 @@ impl Application {
 impl eframe::App for Application {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         self.create_top(ui);
-        self.create_table(ui);
+        ui.horizontal(|ui| {
+            ui.vertical(|ui| {
+                if self.agregators.is_empty() {
+                } else {
+                    let mut to_remove = usize::MAX;
+                    for (index, item) in &mut self.agregators.iter_mut().enumerate() {
+                        match item.status() {
+                            Status::Remove => {
+                                to_remove = index;
+                            }
+                            Status::None => {
+                                ui.push_id(index, |ui| {
+                                    ui.label(format!("Агрегатор {}", index));
+                                    item.ui(ui);
+                                });
+                            }
+                        }
+                    }
+                    if to_remove != usize::MAX {
+                        self.agregators.remove(to_remove);
+                    }
+                }
+            });
+            self.create_table(ui);
+        });
     }
 }
