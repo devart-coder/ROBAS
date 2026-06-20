@@ -1,8 +1,18 @@
-use egui::{RichText, Ui};
+use std::fmt::format;
+
+use calamine::{Reader, SheetVisible, Xls, open_workbook, open_workbook_auto};
+use egui::{Response, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
+
+use crate::{
+    agregator::{Agregator, Status},
+    document::Document,
+};
 
 #[derive(Default)]
 pub struct Application {
+    workbook: Document,
+    agregators: Vec<Agregator>,
     search_by: RichText,
 }
 impl Application {
@@ -22,7 +32,10 @@ impl Application {
                         );
                     });
                 let _ = ui.heading("Агрегатор");
-                let appeted_button = ui.button(egui::RichText::new("Добавить").heading());
+                if ui.button("Добавить").clicked() {
+                    let ag = Agregator::default();
+                    self.agregators.push(ag);
+                }
             });
         });
     }
@@ -49,10 +62,68 @@ impl Application {
                 });
             });
     }
+
+    fn create_menu(&mut self, ui: &mut Ui) {
+        ui.menu_button("Файл", |ui| {
+            if ui.button("📂Открыть").clicked() {
+                let file_dialog = rfd::FileDialog::new()
+                    .add_filter("Exel files", &["xlsx", "xlsm", "xls", "xlsb"]);
+                if let Some(file_path) = file_dialog.pick_file() {
+                    if let Some(path_str) = file_path.to_str() {
+                        #[cfg(debug_assertions)]
+                        {
+                            println!("Path_str: {}", path_str);
+                        }
+                        self.workbook = Document::open(path_str);
+                        // let excel = open_workbook_auto(file_path).unwrap();
+                        // #[cfg(debug_assertions)]
+                        // {
+                        // println!("Document was opened.",);
+                        // println!("Sheets range: {:?}", excel.sheet_names());
+                        // }
+                        #[cfg(debug_assertions)]
+                        {
+                            println!(
+                                "Visible sheets range: {:?}",
+                                self.workbook.sheets(SheetVisible::Visible)
+                            );
+                        }
+                        self.workbook.search_pos("№ п/п");
+                    }
+                }
+                // open_workbook("")
+            };
+        });
+    }
 }
 impl eframe::App for Application {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
+        self.create_menu(ui);
         self.create_top(ui);
-        self.create_table(ui);
+        ui.horizontal(|ui| {
+            ui.vertical(|ui| {
+                if self.agregators.is_empty() {
+                } else {
+                    let mut to_remove = usize::MAX;
+                    for (index, item) in &mut self.agregators.iter_mut().enumerate() {
+                        match item.status() {
+                            Status::Remove => {
+                                to_remove = index;
+                            }
+                            Status::None => {
+                                ui.push_id(index, |ui| {
+                                    ui.label(format!("Агрегатор {}", index));
+                                    item.draw(ui);
+                                });
+                            }
+                        }
+                    }
+                    if to_remove != usize::MAX {
+                        self.agregators.remove(to_remove);
+                    }
+                }
+            });
+            self.create_table(ui);
+        });
     }
 }
