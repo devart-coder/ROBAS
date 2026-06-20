@@ -10,7 +10,7 @@ pub enum Status {
 pub struct Agregator {
     status: Status,
     selected_items: HashSet<usize>,
-    items: Vec<String>,
+    items: HashSet<String>,
     width: f32,
 }
 impl Agregator {
@@ -30,11 +30,11 @@ impl Agregator {
             .show(ui, |ui| {
                 for i in 0..self.items.len() {
                     let is_selected = self.selected_items.contains(&i);
-                    let label = &self.items[i];
+                    let label = &self.items.iter().nth(i).unwrap();
                     ui.with_layout(
                         egui::Layout::top_down_justified(egui::Align::Center),
                         |ui| {
-                            if ui.selectable_label(is_selected, label).clicked() {
+                            if ui.selectable_label(is_selected, "asd").clicked() {
                                 if is_selected {
                                     self.selected_items.remove(&i);
                                 } else {

@@ -88,6 +88,7 @@ impl Application {
                                 self.workbook.sheets(SheetVisible::Visible)
                             );
                         }
+                        self.workbook.search_pos("№ п/п");
                     }
                 }
                 // open_workbook("")
