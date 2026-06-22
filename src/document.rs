@@ -1,17 +1,21 @@
-use std::{collections::HashSet, fs::File, io::BufReader};
+use std::{
+    collections::{BTreeSet, HashMap, HashSet},
+    fs::File,
+    io::BufReader,
+};
 
 use calamine::{Reader, SheetVisible, Sheets, open_workbook_auto};
 pub struct Document {
-    sheets: Vec<String>,
+    sheets: BTreeSet<String>,
     workbook: Option<Sheets<BufReader<File>>>,
-    search_by_list: HashSet<String>,
+    search_by_list: BTreeSet<String>,
 }
 impl Default for Document {
     fn default() -> Self {
         Self {
             sheets: Default::default(),
             workbook: None,
-            search_by_list: HashSet::default(),
+            search_by_list: Default::default(),
         }
     }
 }
@@ -21,21 +25,21 @@ impl Document {
             open_workbook_auto(path_str).expect(&format!("Can't open document: {} ", path_str));
         Self {
             workbook: Some(file),
-            sheets: Vec::default(),
-            search_by_list: HashSet::default(),
+            sheets: Default::default(),
+            search_by_list: Default::default(),
         }
     }
-    pub fn sheets(&mut self, visible: SheetVisible) -> &Vec<String> {
+    pub fn sheets(&mut self, visible: SheetVisible) -> &BTreeSet<String> {
         if let Some(v) = &self.workbook {
             for sheet in v.sheets_metadata() {
                 if sheet.visible == visible {
-                    self.sheets.push(sheet.name.to_string());
+                    self.sheets.insert(sheet.name.to_string());
                 }
             }
         }
         &self.sheets
     }
-    pub fn search_pos(&mut self, value: &str) -> &HashSet<String> {
+    pub fn search_pos(&mut self, value: &str) -> &BTreeSet<String> {
         if let Some(v) = &mut self.workbook {
             for sheets in v.worksheets() {
                 let result = sheets
@@ -51,4 +55,5 @@ impl Document {
         }
         &self.search_by_list
     }
+    // pub fn fun(&mut self, value: HashSet<String>) -> HashMap<String, Vec<u32>> {}
 }

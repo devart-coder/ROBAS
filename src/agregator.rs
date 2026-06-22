@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    collections::{BTreeSet, HashSet},
+    ops::Div,
+};
 
 use egui::{Button, Ui};
 #[derive(PartialEq, Debug)]
@@ -9,24 +12,22 @@ pub enum Status {
 #[derive(Debug)]
 pub struct Agregator {
     status: Status,
-    selected_items: HashSet<String>,
-    items: HashSet<String>,
-    width: f32,
+    selected_items: BTreeSet<String>,
+    items: BTreeSet<String>,
 }
 impl Agregator {
     pub fn default() -> Self {
         Self {
             status: Status::None,
-            selected_items: HashSet::new(),
-            items: HashSet::default(),
-            width: 200.0,
+            selected_items: Default::default(),
+            items: Default::default(),
         }
     }
     fn draw_multiselect(&mut self, ui: &mut Ui) {
         egui::ScrollArea::vertical()
             .max_height(180.0)
             .auto_shrink([false, true])
-            .max_width(self.width)
+            .max_width(ui.available_width())
             .show(ui, |ui| {
                 for item in &self.items {
                     let is_selected = self.selected_items.contains(item);
@@ -48,7 +49,7 @@ impl Agregator {
     }
     fn draw_button(&mut self, ui: &mut Ui) {
         self.status = match ui
-            .add_sized([self.width, 30.0], Button::new("Удалить"))
+            .add_sized([ui.available_width(), 30.0], Button::new("Удалить"))
             .clicked()
         {
             true => Status::Remove,
@@ -63,10 +64,10 @@ impl Agregator {
             });
         });
     }
-    pub fn multiselect(&mut self, set: &HashSet<String>) {
+    pub fn multiselect(&mut self, set: &BTreeSet<String>) {
         self.items = set.clone();
     }
-    pub fn selected(&self) -> &HashSet<String> {
+    pub fn selected(&self) -> &BTreeSet<String> {
         &self.selected_items
     }
     pub fn status(&self) -> &Status {
