@@ -47,27 +47,29 @@ impl Application {
         });
     }
     fn create_table(&mut self, ui: &mut Ui) {
-        egui::ScrollArea::both().show(ui, |ui| {
-            TableBuilder::new(ui)
-                .column(Column::auto().resizable(true))
+        ui.vertical(|ui| {
+            let mut table =
+                TableBuilder::new(ui).column(Column::auto().at_least(100.0).resizable(true));
+            for _ in &self.agregators {
+                table = table.column(Column::auto().resizable(true).at_least(100.0));
+            }
+            table
                 .striped(true)
-                .column(Column::remainder())
-                .header(20.0, |mut header| {
+                .header(30.0, |mut header| {
                     header.col(|ui| {
                         ui.strong(self.selected.to_string());
                     });
-                    header.col(|ui| {
-                        for agregator in &self.agregators {
+                    for agregator in &self.agregators {
+                        header.col(|ui| {
                             for text in agregator.selected() {
                                 ui.strong(text);
                             }
-                        }
-                    });
+                        });
+                    }
                 })
                 .body(|mut body| {
                     body.row(50.0, |mut row| {
                         let draw_cell = |ui: &mut egui::Ui, text: String| {
-                            // 1. Рисуем рамку вокруг ячейки (эффект Excel-сетки)
                             let stroke = egui::Stroke::new(
                                 1.0,
                                 ui.visuals().widgets.noninteractive.bg_stroke.color,
@@ -78,17 +80,16 @@ impl Application {
                                 stroke,
                                 egui::StrokeKind::Inside,
                             );
-
-                            // 2. Добавляем внутренний отступ, чтобы текст не прилипал к линиям
                             ui.add_space(4.0);
                             ui.label(text);
                         };
-                        row.col(|ui| {
-                            draw_cell(ui, self.selected.clone());
-                        });
-                        row.col(|ui| {
-                            draw_cell(ui, self.selected.clone());
-                        });
+                        for agregator in &self.agregators {
+                            row.col(|ui| {
+                                let text =
+                                    agregator.selected().iter().map(|r| r.to_string()).collect();
+                                draw_cell(ui, text);
+                            });
+                        }
                     });
                 });
         });
