@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs::File,
-    io::{BufReader, Error},
-};
+use std::{collections::HashSet, fs::File, io::BufReader};
 
 use calamine::{Reader, SheetVisible, Sheets, open_workbook_auto};
 pub struct Document {
@@ -39,7 +35,7 @@ impl Document {
         }
         &self.sheets
     }
-    pub fn search_pos(&mut self, value: &str) {
+    pub fn search_pos(&mut self, value: &str) -> &HashSet<String> {
         if let Some(v) = &mut self.workbook {
             for sheets in v.worksheets() {
                 let result = sheets
@@ -47,14 +43,12 @@ impl Document {
                     .rows()
                     .position(|row| row.iter().any(|cell| value == cell.to_string().trim()));
                 if let Some(r) = result {
-                    // println!("RowIndex: {}", r);
-                    // println!("Row: {:?}", sheets.1.rows().nth(r).unwrap().to_vec());
-                    for s in sheets.1.rows().nth(r).unwrap().to_vec() {
+                    for s in sheets.1.rows().nth(r).unwrap().to_vec().iter().skip(1) {
                         self.search_by_list.insert(s.to_string().trim().to_string());
                     }
-                    println!("HashSet: {:?}", self.search_by_list);
                 }
             }
         }
+        &self.search_by_list
     }
 }

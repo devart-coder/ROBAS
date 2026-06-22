@@ -1,6 +1,6 @@
-use std::{collections::HashSet, ops::Deref};
+use std::collections::HashSet;
 
-use egui::{Button, Response, Ui, Widget};
+use egui::{Button, Ui};
 #[derive(PartialEq, Debug)]
 pub enum Status {
     None,
@@ -9,7 +9,7 @@ pub enum Status {
 #[derive(Debug)]
 pub struct Agregator {
     status: Status,
-    selected_items: HashSet<usize>,
+    selected_items: HashSet<String>,
     items: HashSet<String>,
     width: f32,
 }
@@ -18,7 +18,7 @@ impl Agregator {
         Self {
             status: Status::None,
             selected_items: HashSet::new(),
-            items: vec!["First".into(), "Second".into(), "Third".into()],
+            items: HashSet::default(),
             width: 200.0,
         }
     }
@@ -28,17 +28,17 @@ impl Agregator {
             .auto_shrink([false, true])
             .max_width(self.width)
             .show(ui, |ui| {
-                for i in 0..self.items.len() {
-                    let is_selected = self.selected_items.contains(&i);
-                    let label = &self.items.iter().nth(i).unwrap();
+                for item in &self.items {
+                    let is_selected = self.selected_items.contains(item);
+                    let label = &self.items.get(item).unwrap();
                     ui.with_layout(
                         egui::Layout::top_down_justified(egui::Align::Center),
                         |ui| {
-                            if ui.selectable_label(is_selected, "asd").clicked() {
+                            if ui.selectable_label(is_selected, *label).clicked() {
                                 if is_selected {
-                                    self.selected_items.remove(&i);
+                                    self.selected_items.remove(item);
                                 } else {
-                                    self.selected_items.insert(i);
+                                    self.selected_items.insert(item.to_string());
                                 }
                             }
                         },
@@ -62,6 +62,12 @@ impl Agregator {
                 self.draw_button(ui);
             });
         });
+    }
+    pub fn multiselect(&mut self, set: &HashSet<String>) {
+        self.items = set.clone();
+    }
+    pub fn selected(&self) -> &HashSet<String> {
+        &self.selected_items
     }
     pub fn status(&self) -> &Status {
         &self.status
