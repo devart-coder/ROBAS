@@ -54,57 +54,52 @@ impl Application {
             });
     }
     fn create_table(&mut self, ui: &mut Ui) {
-        egui::Panel::left("table")
-            .default_size(ui.available_width())
-            .show_inside(ui, |ui| {
-                let mut table =
-                    TableBuilder::new(ui).column(Column::auto().at_least(100.0).resizable(true));
-                for _ in &self.agregators {
-                    table = table.column(Column::auto().resizable(true).at_least(100.0));
-                }
-                table
-                    .striped(true)
-                    .header(30.0, |mut header| {
+        egui::CentralPanel::default().show_inside(ui, |ui| {
+            let mut table =
+                TableBuilder::new(ui).column(Column::auto().at_least(100.0).resizable(true));
+            for _ in &self.agregators {
+                table = table.column(Column::auto().resizable(true).at_least(100.0));
+            }
+            table
+                .striped(true)
+                .header(30.0, |mut header| {
+                    header.col(|ui| {
+                        ui.strong(self.selected.to_string());
+                    });
+                    for agregator in &self.agregators {
                         header.col(|ui| {
-                            ui.strong(self.selected.to_string());
-                        });
-                        for agregator in &self.agregators {
-                            header.col(|ui| {
-                                for text in agregator.selected() {
-                                    ui.strong(text);
-                                }
-                            });
-                        }
-                    })
-                    .body(|mut body| {
-                        body.row(50.0, |mut row| {
-                            let draw_cell = |ui: &mut egui::Ui, text: String| {
-                                let stroke = egui::Stroke::new(
-                                    1.0,
-                                    ui.visuals().widgets.noninteractive.bg_stroke.color,
-                                );
-                                ui.painter().rect_stroke(
-                                    ui.max_rect(),
-                                    0.0,
-                                    stroke,
-                                    egui::StrokeKind::Inside,
-                                );
-                                ui.add_space(4.0);
-                                ui.label(text);
-                            };
-                            for agregator in &self.agregators {
-                                row.col(|ui| {
-                                    let text = agregator
-                                        .selected()
-                                        .iter()
-                                        .map(|r| r.to_string())
-                                        .collect();
-                                    draw_cell(ui, text);
-                                });
+                            for text in agregator.selected() {
+                                ui.strong(text);
                             }
                         });
+                    }
+                })
+                .body(|mut body| {
+                    body.row(50.0, |mut row| {
+                        let draw_cell = |ui: &mut egui::Ui, text: String| {
+                            let stroke = egui::Stroke::new(
+                                1.0,
+                                ui.visuals().widgets.noninteractive.bg_stroke.color,
+                            );
+                            ui.painter().rect_stroke(
+                                ui.max_rect(),
+                                0.0,
+                                stroke,
+                                egui::StrokeKind::Inside,
+                            );
+                            ui.add_space(4.0);
+                            ui.label(text);
+                        };
+                        for agregator in &self.agregators {
+                            row.col(|ui| {
+                                let text =
+                                    agregator.selected().iter().map(|r| r.to_string()).collect();
+                                draw_cell(ui, text);
+                            });
+                        }
                     });
-            });
+                });
+        });
     }
     fn create_menu(&mut self, ui: &mut Ui) {
         egui::Panel::top("menu")
@@ -126,12 +121,12 @@ impl Application {
             });
     }
     fn create_agregators_column(&mut self, ui: &mut Ui) {
-        let width = ui.available_width();
+        let width = ui.available_width().mul(0.2);
         egui::Panel::left("agregators")
             .default_size(width)
             .size_range(Rangef::new(width.sub(100.0), width.add(100.0)))
             .show_inside(ui, |ui| {
-                ui.horizontal(|ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
                     ui.vertical(|ui| {
                         if self.agregators.is_empty() {
                         } else {
@@ -168,22 +163,14 @@ impl Application {
 }
 impl eframe::App for Application {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
-        let awidth = ui.available_width();
-        let aheight = ui.available_height();
         self.create_menu(ui);
         if self.file_opened == true {
+            let awidth = ui.available_width();
+            let aheight = ui.available_height();
             self.create_head(ui);
-            ui.horizontal(|ui| {
-                ui.allocate_ui(egui::Vec2::new(awidth.mul(0.2), aheight), |ui| {
-                    self.create_agregators_column(ui);
-                });
-                ui.allocate_ui(egui::Vec2::new(awidth.mul(0.8), aheight), |ui| {
-                    self.create_table(ui);
-                });
-                ui.allocate_ui(egui::Vec2::new(awidth.mul(0.2), aheight), |ui| {
-                    self.create_sheets(ui);
-                });
-            });
+            self.create_agregators_column(ui);
+            self.create_sheets(ui);
+            self.create_table(ui);
         }
     }
 }

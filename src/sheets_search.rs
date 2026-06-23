@@ -1,9 +1,9 @@
 use std::{
     collections::{BTreeSet, HashSet},
-    ops::{Div, Sub},
+    ops::{Div, Mul, Sub},
 };
 
-use egui::{Scene, Sense, Ui};
+use egui::{Rangef, Scene, Sense, Ui};
 #[derive(Default)]
 pub struct Sheets {
     sheets_search_names: BTreeSet<String>,
@@ -11,9 +11,11 @@ pub struct Sheets {
 }
 impl Sheets {
     pub fn draw(&mut self, ui: &mut Ui) {
-        let width = ui.available_width();
+        let width = ui.available_width().mul(0.2);
         egui::Panel::right("right_panel")
             .resizable(true) // Можно ли пользователю менять её ширину мышкой
+            .size_range(Rangef::new(width.sub(100.0), width.sub(100.0)))
+            .size_range((width * 0.2)..=(width * 0.2)) // Выделяем ровно 20%
             .default_size(width)
             .show_inside(ui, |ui| {
                 ui.label("Листы");
@@ -21,7 +23,7 @@ impl Sheets {
                     ui.horizontal(|ui| {
                         if ui
                             .add_sized(
-                                [width.div(2.0).sub(5.0), 30.0],
+                                [width.sub(30.0).div(2.0).sub(5.0), 30.0],
                                 egui::Button::new("Выделить все"),
                             )
                             .clicked()
@@ -32,7 +34,7 @@ impl Sheets {
                         };
                         if ui
                             .add_sized(
-                                [width.div(2.0).sub(5.0), 30.0],
+                                [width.sub(30.0).div(2.0).sub(5.0), 30.0],
                                 egui::Button::new("Очистить"),
                             )
                             .clicked()
@@ -43,7 +45,7 @@ impl Sheets {
                     ui.group(|ui| {
                         egui::ScrollArea::vertical()
                             .auto_shrink([false, true])
-                            .max_width(ui.available_width())
+                            .max_width(width)
                             .show(ui, |ui| {
                                 for item in &self.sheets_search_names {
                                     let is_selected = self.selected.contains(item);
@@ -63,7 +65,7 @@ impl Sheets {
                                 }
                             });
                     });
-                    ui.add_sized([width, 30.0], egui::Button::new("Найти"));
+                    ui.add_sized([width.sub(30.0), 30.0], egui::Button::new("Найти"));
                 });
             });
     }
