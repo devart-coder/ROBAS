@@ -4,12 +4,12 @@ use std::{
 };
 
 use egui::{Button, Ui};
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Status {
     None,
     Remove,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Agregator {
     status: Status,
     selected_items: BTreeSet<String>,

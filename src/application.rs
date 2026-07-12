@@ -165,12 +165,21 @@ impl eframe::App for Application {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         self.create_menu(ui);
         if self.file_opened == true {
-            let awidth = ui.available_width();
-            let aheight = ui.available_height();
             self.create_head(ui);
             self.create_agregators_column(ui);
             self.create_sheets(ui);
             self.create_table(ui);
+            if let Some(v) = self.sheets.statement() {
+                println!("Selected: {:?}", v);
+                let map = self
+                    .workbook
+                    .action()
+                    .word(&self.selected)
+                    .with(&self.agregators)
+                    .in_sheets(v)
+                    .search();
+                println!("Map: {:#?}", map);
+            }
         }
     }
 }

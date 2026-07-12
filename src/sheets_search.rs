@@ -1,18 +1,19 @@
+use egui::{Button, InnerResponse, Rangef, Response, Scene, Sense, Ui};
 use std::{
     collections::{BTreeSet, HashSet},
     ops::{Div, Mul, Sub},
 };
-
-use egui::{Rangef, Scene, Sense, Ui};
 #[derive(Default)]
 pub struct Sheets {
     sheets_search_names: BTreeSet<String>,
     selected: BTreeSet<String>,
+    statement: Option<BTreeSet<String>>,
 }
+
 impl Sheets {
     pub fn draw(&mut self, ui: &mut Ui) {
         let width = ui.available_width().mul(0.2);
-        egui::Panel::right("right_panel")
+        let search_button = egui::Panel::right("right_panel")
             .resizable(true) // Можно ли пользователю менять её ширину мышкой
             .size_range(Rangef::new(width.sub(100.0), width.sub(100.0)))
             .size_range((width * 0.2)..=(width * 0.2)) // Выделяем ровно 20%
@@ -65,12 +66,23 @@ impl Sheets {
                                 }
                             });
                     });
-                    ui.add_sized([width.sub(30.0), 30.0], egui::Button::new("Найти"));
+                    if ui
+                        .add_sized([width.sub(30.0), 30.0], egui::Button::new("Найти"))
+                        .clicked()
+                    {
+                        self.statement = Some(self.selected.clone());
+                    } else {
+                        self.statement = None;
+                    }
                 });
+                // search_button.inner
             });
+        // search_button.inner
     }
-    pub fn search_by(&self) {}
     pub fn show_sheets(&mut self, sheets: &BTreeSet<String>) {
         self.sheets_search_names = sheets.clone();
+    }
+    pub fn statement(&self) -> &Option<BTreeSet<String>> {
+        &self.statement
     }
 }
